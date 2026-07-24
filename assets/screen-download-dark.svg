@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 612" width="900" height="612" role="img" aria-label="Yoink en mode sombre — téléchargement en cours">
+  <title>Yoink — mode sombre</title>
+  <defs>
+    <linearGradient id="badge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff3b30"/>
+      <stop offset="100%" stop-color="#e60000"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="18" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- fenêtre -->
+  <rect x="6" y="6" width="888" height="600" rx="16" fill="#0f0f0f" stroke="#242424" filter="url(#shadow)"/>
+
+  <!-- ===== Topbar ===== -->
+  <g transform="translate(24 17)">
+    <g transform="scale(0.8125)">
+      <rect width="32" height="32" rx="9" fill="url(#badge)"/>
+      <g fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10 9 L16 16 L22 9"/><path d="M16 16 L16 23.5"/><path d="M11.5 19 L16 23.5 L20.5 19"/>
+      </g>
+    </g>
+  </g>
+  <text x="60" y="38" font-family="'Segoe UI', system-ui, sans-serif" font-size="17" font-weight="700" fill="#f1f1f1">Yoink</text>
+
+  <!-- tabs -->
+  <rect x="336" y="15" width="252" height="32" rx="16" fill="#181818"/>
+  <rect x="340" y="19" width="122" height="24" rx="12" fill="#2f2f2f"/>
+  <text x="401" y="35" font-family="'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" fill="#f1f1f1" text-anchor="middle">Télécharger</text>
+  <text x="478" y="35" font-family="'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" fill="#aaa">Historique</text>
+  <circle cx="567" cy="27" r="9" fill="#ff3b30"/>
+  <text x="567" y="31" font-family="'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+
+  <!-- engine badge + icons -->
+  <rect x="636" y="16" width="120" height="30" rx="15" fill="#181818" stroke="#2a2a2a"/>
+  <circle cx="656" cy="31" r="4" fill="#3dd15e"/>
+  <text x="668" y="35" font-family="'Segoe UI', system-ui, sans-serif" font-size="12" fill="#3dd15e">Prêt</text>
+  <circle cx="792" cy="31" r="15" fill="#181818"/>
+  <path d="M795 24a7.5 7.5 0 1 0 5 13.6 6 6 0 0 1-5-13.6z" fill="#d0d0d0"/>
+  <circle cx="836" cy="31" r="15" fill="#181818"/>
+  <g stroke="#d0d0d0" stroke-width="1.8" stroke-linecap="round">
+    <path d="M830 27h12M830 31h12M830 35h8"/>
+  </g>
+
+  <line x1="6" y1="60" x2="894" y2="60" stroke="#1e1e1e"/>
+
+  <!-- ===== Barre URL ===== -->
+  <rect x="40" y="80" width="820" height="48" rx="24" fill="#212121" stroke="#444"/>
+  <g transform="translate(60 96)" stroke="#888" stroke-width="1.8" fill="none" stroke-linecap="round">
+    <path d="M6 10a4 4 0 0 1 0-6l3-3a4 4 0 0 1 6 6l-1 1"/>
+    <path d="M14 6a4 4 0 0 1 0 6l-3 3a4 4 0 0 1-6-6l1-1"/>
+  </g>
+  <text x="92" y="109" font-family="'Cascadia Code', Consolas, monospace" font-size="14" fill="#e8e8e8">https://www.youtube.com/watch?v=XKqthUdmYQU</text>
+  <rect x="716" y="86" width="128" height="36" rx="18" fill="#ff0000"/>
+  <text x="780" y="109" font-family="'Segoe UI', system-ui, sans-serif" font-size="14" font-weight="600" fill="#fff" text-anchor="middle">Analyser</text>
+
+  <!-- ===== Carte aperçu ===== -->
+  <rect x="120" y="148" width="660" height="100" rx="14" fill="#212121" stroke="#333"/>
+  <rect x="136" y="164" width="150" height="84" rx="8" fill="#2c2c2c"/>
+  <circle cx="211" cy="206" r="20" fill="#ff3b30" opacity="0.9"/>
+  <path d="M206 198 L206 214 L219 206 Z" fill="#fff"/>
+  <text x="306" y="196" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" font-weight="600" fill="#f1f1f1">BANNI OU LIBRE #6 feat @GuizziYT</text>
+  <text x="306" y="222" font-family="'Segoe UI', system-ui, sans-serif" font-size="13" fill="#aaa">Roknar · 23:30</text>
+
+  <!-- ===== Carte options ===== -->
+  <rect x="120" y="264" width="660" height="324" rx="14" fill="#212121" stroke="#333"/>
+
+  <text x="140" y="294" font-family="'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="600" letter-spacing="0.6" fill="#aaa">FORMAT</text>
+  <rect x="140" y="304" width="620" height="44" rx="10" fill="#181818"/>
+  <rect x="145" y="309" width="305" height="34" rx="7" fill="#2f2f2f"/>
+  <path d="M285 320 h10 v4 l3 -2 v8 l-3 -2 v4 h-10 z" fill="#ff3b30"/>
+  <text x="305" y="331" font-family="'Segoe UI', system-ui, sans-serif" font-size="14" font-weight="600" fill="#f1f1f1">Vidéo</text>
+  <text x="607" y="331" font-family="'Segoe UI', system-ui, sans-serif" font-size="14" font-weight="600" fill="#aaa" text-anchor="middle">Audio</text>
+
+  <text x="140" y="376" font-family="'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="600" letter-spacing="0.6" fill="#aaa">QUALITÉ</text>
+  <rect x="140" y="386" width="620" height="44" rx="10" fill="#212121" stroke="#444"/>
+  <text x="154" y="413" font-family="'Segoe UI', system-ui, sans-serif" font-size="14" fill="#f1f1f1">Full HD (1080p)</text>
+  <path d="M736 405 l6 6 l6 -6" stroke="#888" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- progression -->
+  <text x="140" y="470" font-family="'Segoe UI', system-ui, sans-serif" font-size="14" font-weight="600" fill="#f1f1f1">Téléchargement</text>
+  <text x="760" y="470" font-family="'Segoe UI', system-ui, sans-serif" font-size="13" fill="#aaa" text-anchor="end">62,4 %</text>
+  <rect x="140" y="482" width="620" height="10" rx="5" fill="#333"/>
+  <rect x="140" y="482" width="387" height="10" rx="5" fill="#ff3b30"/>
+  <text x="140" y="512" font-family="'Cascadia Code', Consolas, monospace" font-size="12" fill="#aaa">18.4 MB/s</text>
+  <text x="760" y="512" font-family="'Cascadia Code', Consolas, monospace" font-size="12" fill="#aaa" text-anchor="end">ETA 00:42</text>
+
+  <rect x="140" y="532" width="620" height="44" rx="22" fill="#ff3b30"/>
+  <text x="450" y="559" font-family="'Segoe UI', system-ui, sans-serif" font-size="15" font-weight="600" fill="#fff" text-anchor="middle">Annuler</text>
+</svg>

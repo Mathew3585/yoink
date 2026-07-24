@@ -1,15 +1,33 @@
-<h1 align="center">🎣 Yoink</h1>
+<div align="center">
 
-<p align="center">
-  Un téléchargeur de vidéos rapide et élégant pour Windows.<br>
-  Vidéo <strong>MP4</strong> (jusqu'à la 4K/8K) ou audio <strong>MP3</strong>, en deux clics.
-</p>
+<img src="assets/banner.svg" alt="Yoink" width="100%">
 
-<p align="center">
-  <img alt="Tauri" src="https://img.shields.io/badge/Tauri-2-FFC131?logo=tauri&logoColor=white">
-  <img alt="Rust" src="https://img.shields.io/badge/Rust-000?logo=rust&logoColor=white">
-  <img alt="Plateforme" src="https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white">
-</p>
+<br>
+
+**Colle un lien. Choisis le format. Récupère ta vidéo — MP4 ou MP3, en deux clics.**
+
+Yoink est un téléchargeur de vidéos pour Windows : rapide, sans pub, sans compte, open source.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-ff3b30?style=flat-square)](LICENSE)
+[![Plateforme](https://img.shields.io/badge/Windows-10%2F11-ff3b30?style=flat-square)](#-prérequis-développement)
+[![Tauri](https://img.shields.io/badge/Tauri-2-ff3b30?style=flat-square)](https://tauri.app)
+[![Rust](https://img.shields.io/badge/Rust-000?style=flat-square&logo=rust)](https://www.rust-lang.org)
+
+</div>
+
+---
+
+## 🖼️ Aperçu
+
+<div align="center">
+
+<img src="assets/screen-download-dark.svg" alt="Vue téléchargement en mode sombre : aperçu de la vidéo, choix du format et de la qualité, barre de progression" width="88%">
+
+<br><br>
+
+<img src="assets/screen-history-light.svg" alt="Historique des téléchargements en mode clair : liste des vidéos récupérées avec miniature, format, qualité et date" width="88%">
+
+</div>
 
 ---
 

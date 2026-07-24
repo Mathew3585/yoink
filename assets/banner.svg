@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 440" width="1200" height="440" role="img" aria-label="Yoink — téléchargeur de vidéos pour Windows">
+  <title>Yoink</title>
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#ff3b30" stop-opacity="0.22"/>
+      <stop offset="55%"  stop-color="#ff3b30" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#ff3b30" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="badge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff3b30"/>
+      <stop offset="100%" stop-color="#e60000"/>
+    </linearGradient>
+    <linearGradient id="fill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ff3b30"/>
+      <stop offset="100%" stop-color="#ff0033"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#2a2a2a" stop-opacity="0"/>
+      <stop offset="50%"  stop-color="#2a2a2a" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#2a2a2a" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="440" fill="#0d0d0d"/>
+  <ellipse cx="270" cy="150" rx="640" ry="430" fill="url(#glow)"/>
+
+  <!-- brandmark : badge rouge + Y-flèche -->
+  <g transform="translate(84 96) scale(3.4)">
+    <rect width="32" height="32" rx="9" fill="url(#badge)"/>
+    <g fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 9 L16 16 L22 9"/>
+      <path d="M16 16 L16 23.5"/>
+      <path d="M11.5 19 L16 23.5 L20.5 19"/>
+    </g>
+  </g>
+
+  <!-- wordmark -->
+  <text x="230" y="182" font-family="'Segoe UI', -apple-system, BlinkMacSystemFont, Inter, system-ui, sans-serif" font-size="82" font-weight="700" letter-spacing="-3" fill="#F4F4F5">yoink</text>
+
+  <!-- tagline -->
+  <text x="90" y="262" font-family="'Segoe UI', -apple-system, BlinkMacSystemFont, Inter, system-ui, sans-serif" font-size="26" font-weight="400" letter-spacing="-0.4" fill="#c9c9cd">Colle un lien. Choisis le format. Récupère ta vidéo.</text>
+  <text x="90" y="300" font-family="'Segoe UI', -apple-system, BlinkMacSystemFont, Inter, system-ui, sans-serif" font-size="19" font-weight="400" letter-spacing="-0.2" fill="#8a8a90">Téléchargeur MP4 / MP3 pour Windows. Rapide, sans pub, open source.</text>
+
+  <!-- chips -->
+  <g font-family="'Cascadia Code', 'SF Mono', Consolas, monospace" font-size="14" letter-spacing="0.2">
+    <g>
+      <rect x="90"  y="336" width="150" height="34" rx="17" fill="#181818" stroke="#2a2a2a"/>
+      <circle cx="112" cy="353" r="4" fill="#3dd15e"/>
+      <text x="126" y="358" fill="#c9c9cd">MP4 · MP3</text>
+    </g>
+    <g>
+      <rect x="252" y="336" width="168" height="34" rx="17" fill="#181818" stroke="#2a2a2a"/>
+      <circle cx="274" cy="353" r="4" fill="#ff3b30"/>
+      <text x="288" y="358" fill="#c9c9cd">jusqu'à la 4K</text>
+    </g>
+    <g>
+      <rect x="432" y="336" width="196" height="34" rx="17" fill="#181818" stroke="#2a2a2a"/>
+      <circle cx="454" cy="353" r="4" fill="#ff3b30"/>
+      <text x="468" y="358" fill="#c9c9cd">clair / sombre</text>
+    </g>
+    <g>
+      <rect x="640" y="336" width="90" height="34" rx="17" fill="#181818" stroke="#2a2a2a"/>
+      <circle cx="662" cy="353" r="4" fill="#3dd15e"/>
+      <text x="676" y="358" fill="#c9c9cd">MIT</text>
+    </g>
+  </g>
+
+  <!-- hairline -->
+  <rect x="0" y="398" width="1200" height="1" fill="url(#hair)"/>
+
+  <!-- barre de progression décorative -->
+  <g transform="translate(90 416)">
+    <rect x="0" y="0" width="900" height="10" rx="5" fill="#1c1c1c"/>
+    <rect x="0" y="0" width="612" height="10" rx="5" fill="url(#fill)"/>
+    <circle cx="612" cy="5" r="7" fill="#ff3b30"/>
+    <text x="924" y="9" font-family="'Cascadia Code', Consolas, monospace" font-size="13" fill="#8a8a90">68 %</text>
+    <text x="978" y="9" font-family="'Cascadia Code', Consolas, monospace" font-size="13" fill="#8a8a90">· 24.3 MB/s</text>
+  </g>
+</svg>

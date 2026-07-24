@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 528" width="900" height="528" role="img" aria-label="Yoink en mode clair — historique des téléchargements">
+  <title>Yoink — mode clair, historique</title>
+  <defs>
+    <linearGradient id="badge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff3b30"/>
+      <stop offset="100%" stop-color="#e60000"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="18" flood-color="#000" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- fenêtre -->
+  <rect x="6" y="6" width="888" height="516" rx="16" fill="#f9f9f9" stroke="#e5e5e5" filter="url(#shadow)"/>
+  <!-- topbar blanche (coins hauts arrondis) -->
+  <path d="M6 60 L6 22 Q6 6 22 6 L878 6 Q894 6 894 22 L894 60 Z" fill="#ffffff"/>
+  <line x1="6" y1="60" x2="894" y2="60" stroke="#e5e5e5"/>
+
+  <!-- logo + nom -->
+  <g transform="translate(24 17)">
+    <g transform="scale(0.8125)">
+      <rect width="32" height="32" rx="9" fill="url(#badge)"/>
+      <g fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10 9 L16 16 L22 9"/><path d="M16 16 L16 23.5"/><path d="M11.5 19 L16 23.5 L20.5 19"/>
+      </g>
+    </g>
+  </g>
+  <text x="60" y="38" font-family="'Segoe UI', system-ui, sans-serif" font-size="17" font-weight="700" fill="#0f0f0f">Yoink</text>
+
+  <!-- tabs (Historique actif) -->
+  <rect x="330" y="15" width="268" height="32" rx="16" fill="#f1f1f1"/>
+  <text x="394" y="35" font-family="'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" fill="#606060" text-anchor="middle">Télécharger</text>
+  <rect x="458" y="19" width="134" height="24" rx="12" fill="#ffffff"/>
+  <text x="470" y="35" font-family="'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" fill="#0f0f0f">Historique</text>
+  <circle cx="560" cy="27" r="9" fill="#ff0000"/>
+  <text x="560" y="31" font-family="'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+
+  <!-- engine badge + icônes -->
+  <rect x="636" y="16" width="120" height="30" rx="15" fill="#f1f1f1"/>
+  <circle cx="656" cy="31" r="4" fill="#2ba640"/>
+  <text x="668" y="35" font-family="'Segoe UI', system-ui, sans-serif" font-size="12" fill="#2ba640">Prêt</text>
+  <circle cx="792" cy="31" r="15" fill="#f1f1f1"/>
+  <circle cx="792" cy="31" r="4.5" fill="none" stroke="#606060" stroke-width="1.6"/>
+  <g stroke="#606060" stroke-width="1.6" stroke-linecap="round">
+    <path d="M792 22.5v-2M792 41.5v-2M801 31h2M781 31h2M798.4 24.6l1.4-1.4M784.2 38.8l1.4-1.4M798.4 37.4l1.4 1.4M784.2 23.2l1.4 1.4"/>
+  </g>
+  <circle cx="836" cy="31" r="15" fill="#f1f1f1"/>
+  <g stroke="#606060" stroke-width="1.8" stroke-linecap="round">
+    <path d="M830 27h12M830 31h12M830 35h8"/>
+  </g>
+
+  <!-- en-tête historique -->
+  <text x="40" y="98" font-family="'Segoe UI', system-ui, sans-serif" font-size="20" font-weight="700" fill="#0f0f0f">Historique des téléchargements</text>
+  <text x="860" y="98" font-family="'Segoe UI', system-ui, sans-serif" font-size="13" font-weight="600" fill="#606060" text-anchor="end">Tout effacer</text>
+
+  <!-- ==== items ==== -->
+  <!-- item 1 -->
+  <g>
+    <rect x="40" y="124" width="820" height="84" rx="14" fill="#ffffff" stroke="#e5e5e5"/>
+    <rect x="52" y="132" width="120" height="68" rx="8" fill="#ececec"/>
+    <circle cx="112" cy="166" r="15" fill="#c8c8c8"/><path d="M108 159 L108 173 L119 166 Z" fill="#fff"/>
+    <rect x="138" y="182" width="30" height="15" rx="4" fill="#000" opacity="0.72"/>
+    <text x="153" y="193" font-family="'Segoe UI', system-ui, sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">MP4</text>
+    <text x="188" y="158" font-family="'Segoe UI', system-ui, sans-serif" font-size="14" font-weight="600" fill="#0f0f0f">BANNI OU LIBRE #6 feat @GuizziYT</text>
+    <rect x="188" y="172" width="120" height="20" rx="10" fill="#f1f1f1"/>
+    <text x="198" y="186" font-family="'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="600" fill="#606060">Full HD (1080p)</text>
+    <text x="322" y="186" font-family="'Segoe UI', system-ui, sans-serif" font-size="12" fill="#606060">Aujourd'hui, 14:32</text>
+    <circle cx="742" cy="166" r="16" fill="#f1f1f1"/><path d="M735 162h5l1.5 1.5h6v7.5h-12.5z" fill="none" stroke="#606060" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="784" cy="166" r="16" fill="#f1f1f1"/><path d="M784 160v9m-4-3.5 4 4 4-4" stroke="#606060" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M778 172h12" stroke="#606060" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="826" cy="166" r="16" fill="#f1f1f1"/><path d="M820 162h12m-10 0v9a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5v-9m-7 0v-1.5h4v1.5" stroke="#606060" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- item 2 -->
+  <g>
+    <rect x="40" y="218" width="820" height="84" rx="14" fill="#ffffff" stroke="#e5e5e5"/>
+    <rect x="52" y="226" width="120" height="68" rx="8" fill="#ececec"/>
+    <circle cx="112" cy="260" r="15" fill="#c8c8c8"/><path d="M108 253 L108 267 L119 260 Z" fill="#fff"/>
+    <rect x="138" y="276" width="30" height="15" rx="4" fill="#000" opacity="0.72"/>
+    <text x="153" y="287" font-family="'Segoe UI', system-ui, sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">MP3</text>
+    <text x="188" y="252" font-family="'Segoe UI', system-ui, sans-serif" font-size="14" font-weight="600" fill="#0f0f0f">Lofi Girl — beats to relax / study to</text>
+    <rect x="188" y="266" width="58" height="20" rx="10" fill="#f1f1f1"/>
+    <text x="198" y="280" font-family="'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="600" fill="#606060">MP3</text>
+    <text x="260" y="280" font-family="'Segoe UI', system-ui, sans-serif" font-size="12" fill="#606060">Aujourd'hui, 11:05</text>
+    <circle cx="742" cy="260" r="16" fill="#f1f1f1"/><path d="M735 256h5l1.5 1.5h6v7.5h-12.5z" fill="none" stroke="#606060" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="784" cy="260" r="16" fill="#f1f1f1"/><path d="M784 254v9m-4-3.5 4 4 4-4" stroke="#606060" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M778 266h12" stroke="#606060" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="826" cy="260" r="16" fill="#f1f1f1"/><path d="M820 256h12m-10 0v9a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5v-9m-7 0v-1.5h4v1.5" stroke="#606060" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- item 3 -->
+  <g>
+    <rect x="40" y="312" width="820" height="84" rx="14" fill="#ffffff" stroke="#e5e5e5"/>
+    <rect x="52" y="320" width="120" height="68" rx="8" fill="#ececec"/>
+    <circle cx="112" cy="354" r="15" fill="#c8c8c8"/><path d="M108 347 L108 361 L119 354 Z" fill="#fff"/>
+    <rect x="138" y="370" width="30" height="15" rx="4" fill="#000" opacity="0.72"/>
+    <text x="153" y="381" font-family="'Segoe UI', system-ui, sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">MP4</text>
+    <text x="188" y="346" font-family="'Segoe UI', system-ui, sans-serif" font-size="14" font-weight="600" fill="#0f0f0f">4K Drone Footage — Iceland</text>
+    <rect x="188" y="360" width="92" height="20" rx="10" fill="#f1f1f1"/>
+    <text x="198" y="374" font-family="'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="600" fill="#606060">4K (2160p)</text>
+    <text x="294" y="374" font-family="'Segoe UI', system-ui, sans-serif" font-size="12" fill="#606060">Hier, 22:14</text>
+    <circle cx="742" cy="354" r="16" fill="#f1f1f1"/><path d="M735 350h5l1.5 1.5h6v7.5h-12.5z" fill="none" stroke="#606060" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="784" cy="354" r="16" fill="#f1f1f1"/><path d="M784 348v9m-4-3.5 4 4 4-4" stroke="#606060" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M778 360h12" stroke="#606060" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="826" cy="354" r="16" fill="#f1f1f1"/><path d="M820 350h12m-10 0v9a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5v-9m-7 0v-1.5h4v1.5" stroke="#606060" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- item 4 -->
+  <g>
+    <rect x="40" y="406" width="820" height="84" rx="14" fill="#ffffff" stroke="#e5e5e5"/>
+    <rect x="52" y="414" width="120" height="68" rx="8" fill="#ececec"/>
+    <circle cx="112" cy="448" r="15" fill="#c8c8c8"/><path d="M108 441 L108 455 L119 448 Z" fill="#fff"/>
+    <rect x="138" y="464" width="30" height="15" rx="4" fill="#000" opacity="0.72"/>
+    <text x="153" y="475" font-family="'Segoe UI', system-ui, sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">MP4</text>
+    <text x="188" y="440" font-family="'Segoe UI', system-ui, sans-serif" font-size="14" font-weight="600" fill="#0f0f0f">Interview — Rust en 2026</text>
+    <rect x="188" y="454" width="84" height="20" rx="10" fill="#f1f1f1"/>
+    <text x="198" y="468" font-family="'Segoe UI', system-ui, sans-serif" font-size="11" font-weight="600" fill="#606060">HD (720p)</text>
+    <text x="286" y="468" font-family="'Segoe UI', system-ui, sans-serif" font-size="12" fill="#606060">23 juil., 18:40</text>
+    <circle cx="742" cy="448" r="16" fill="#f1f1f1"/><path d="M735 444h5l1.5 1.5h6v7.5h-12.5z" fill="none" stroke="#606060" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="784" cy="448" r="16" fill="#f1f1f1"/><path d="M784 442v9m-4-3.5 4 4 4-4" stroke="#606060" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M778 454h12" stroke="#606060" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="826" cy="448" r="16" fill="#f1f1f1"/><path d="M820 444h12m-10 0v9a1.5 1.5 0 0 0 1.5 1.5h5a1.5 1.5 0 0 0 1.5-1.5v-9m-7 0v-1.5h4v1.5" stroke="#606060" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
