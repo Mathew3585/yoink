@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yoink</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ===================== Barre supérieure ===================== -->
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="30" height="30">
+              <rect width="32" height="32" rx="9" fill="currentColor" />
+              <g
+                stroke="#fff"
+                stroke-width="2.6"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M10 9 L16 16 L22 9" />
+                <path d="M16 16 L16 23.5" />
+                <path d="M11.5 19 L16 23.5 L20.5 19" />
+              </g>
+            </svg>
+          </span>
+          <span class="brand-name">Yoink</span>
+        </div>
+
+        <nav class="tabs" id="tabs">
+          <button class="tab active" data-view="download">Télécharger</button>
+          <button class="tab" data-view="history">
+            Historique <span class="tab-count" id="historyCount">0</span>
+          </button>
+        </nav>
+
+        <div class="topbar-right">
+          <span class="badge" id="engineBadge">
+            <span class="badge-dot"></span>
+            <span id="engineText">Vérification…</span>
+          </span>
+          <button id="themeBtn" class="icon-btn" title="Changer de thème">
+            <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18">
+              <path
+                fill="currentColor"
+                d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0-5a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1ZM4.2 4.2a1 1 0 0 1 1.4 0l1.4 1.4a1 1 0 0 1-1.4 1.4L4.2 5.6a1 1 0 0 1 0-1.4Zm12.8 12.8a1 1 0 0 1 1.4 0l1.4 1.4a1 1 0 0 1-1.4 1.4l-1.4-1.4a1 1 0 0 1 0-1.4ZM2 12a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1Zm16 0a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2h-2a1 1 0 0 1-1-1ZM4.2 19.8a1 1 0 0 1 0-1.4l1.4-1.4a1 1 0 0 1 1.4 1.4l-1.4 1.4a1 1 0 0 1-1.4 0ZM17 7a1 1 0 0 1 0-1.4l1.4-1.4a1 1 0 1 1 1.4 1.4L18.4 7A1 1 0 0 1 17 7Z"
+              />
+            </svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18">
+              <path
+                fill="currentColor"
+                d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"
+              />
+            </svg>
+          </button>
+          <button id="logBtn" class="icon-btn" title="Afficher le journal">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path
+                fill="currentColor"
+                d="M4 5a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Zm0 5a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Zm0 5a1 1 0 0 1 1-1h9a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Zm0 5a1 1 0 0 1 1-1h9a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z"
+              />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- ===================== Vue : Télécharger ===================== -->
+      <main class="view active" id="view-download">
+        <section class="hero">
+          <div class="url-row">
+            <span class="url-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18">
+                <path
+                  fill="currentColor"
+                  d="M10.6 13.4a1 1 0 0 0 1.4 0l4-4a3 3 0 0 0-4.2-4.2l-1.3 1.3a1 1 0 0 0 1.4 1.4l1.3-1.3a1 1 0 0 1 1.4 1.4l-4 4a1 1 0 0 0 0 1.4Zm2.8-2.8a1 1 0 0 0-1.4 0l-4 4a3 3 0 0 0 4.2 4.2l1.3-1.3a1 1 0 0 0-1.4-1.4l-1.3 1.3a1 1 0 0 1-1.4-1.4l4-4a1 1 0 0 0 0-1.4Z"
+                />
+              </svg>
+            </span>
+            <input
+              id="url"
+              type="text"
+              placeholder="Colle un lien YouTube ici…"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button id="fetchBtn" class="btn btn-primary">Analyser</button>
+          </div>
+        </section>
+
+        <section class="workspace">
+          <div class="center">
+            <!-- Accueil -->
+            <div id="placeholder" class="placeholder card">
+              <div class="placeholder-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="40" height="40">
+                  <path
+                    fill="currentColor"
+                    d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Zm6 2.5v7l6-3.5-6-3.5Z"
+                  />
+                </svg>
+              </div>
+              <h2>Prêt à télécharger</h2>
+              <p class="muted">
+                Colle un lien YouTube ci-dessus et clique sur « Analyser » pour
+                choisir la qualité, le nom du fichier et le format.
+              </p>
+            </div>
+
+            <!-- Aperçu de la vidéo -->
+            <div id="preview" class="card preview hidden">
+              <div class="thumb-wrap">
+                <img id="thumb" class="thumb" alt="" />
+                <div class="thumb-loader"><div class="spinner"></div></div>
+              </div>
+              <div class="preview-info">
+                <h2 id="vidTitle">Analyse en cours…</h2>
+                <p id="vidMeta" class="muted">Récupération des informations</p>
+              </div>
+            </div>
+
+            <!-- Options -->
+            <div id="options" class="card options hidden">
+              <div class="opt-group">
+                <label class="opt-label">Format</label>
+                <div class="segmented" id="modeSeg">
+                  <button class="seg active" data-mode="video">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path fill="currentColor" d="M4 6a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v2l3-2v12l-3-2v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z"/>
+                    </svg>
+                    Vidéo
+                  </button>
+                  <button class="seg" data-mode="audio">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.6A4 4 0 1 1 11 10V4a1 1 0 0 1 1-1Z"/>
+                    </svg>
+                    Audio
+                  </button>
+                </div>
+              </div>
+
+              <div class="opt-group">
+                <label class="opt-label">Nom du fichier</label>
+                <div class="filename-row">
+                  <input id="fileName" type="text" placeholder="Nom du fichier…" />
+                  <select id="fileExt" class="file-ext" title="Format du fichier"></select>
+                </div>
+              </div>
+
+              <div class="opt-grid">
+                <div class="opt-group" id="qualityGroup">
+                  <label class="opt-label">Qualité</label>
+                  <select id="quality"></select>
+                </div>
+
+                <div class="opt-group hidden" id="audioGroup">
+                  <label class="opt-label">Qualité audio</label>
+                  <select id="audioQuality">
+                    <option value="0">Meilleure (320k)</option>
+                    <option value="5">Moyenne (~128k)</option>
+                    <option value="9">Légère (~64k)</option>
+                  </select>
+                </div>
+
+                <div class="opt-group gpu" id="gpuGroup">
+                  <label class="opt-label">Ré-encodage GPU (NVENC — 3060)</label>
+                  <select id="nvenc">
+                    <option value="none">Désactivé (sans perte — recommandé)</option>
+                    <option value="h264_nvenc">H.264 NVENC (compatible partout)</option>
+                    <option value="hevc_nvenc">HEVC/H.265 NVENC (plus léger)</option>
+                  </select>
+                </div>
+
+                <div class="opt-group" id="upscaleGroup">
+                  <label class="opt-label">Agrandissement (upscaling)</label>
+                  <select id="upscale">
+                    <option value="none">Aucun</option>
+                    <option value="ai2">IA ×2 (Real-ESRGAN)</option>
+                    <option value="ai4">IA ×4 (Real-ESRGAN)</option>
+                    <option value="fast">Rapide ×2 (non-IA)</option>
+                  </select>
+                </div>
+              </div>
+
+              <p id="upscaleHint" class="opt-hint hidden">
+                ⚡ L'agrandissement IA se fait après le téléchargement : c'est
+                <strong>long</strong> (traitement image par image sur le GPU) et
+                utilise temporairement beaucoup d'espace disque. Incompatible avec le
+                conteneur WEBM.
+              </p>
+
+              <div class="opt-group folder">
+                <label class="opt-label">Dossier de sortie</label>
+                <div class="folder-row">
+                  <input id="outDir" type="text" readonly placeholder="Choisis un dossier…" />
+                  <button id="pickDir" class="btn">Parcourir</button>
+                </div>
+              </div>
+
+              <!-- Progression -->
+              <div id="progress" class="progress hidden">
+                <div class="progress-head">
+                  <span id="progLabel">Préparation…</span>
+                  <span id="progPct" class="muted">0 %</span>
+                </div>
+                <div class="bar"><div id="barFill" class="bar-fill"></div></div>
+                <div class="progress-meta">
+                  <span id="progSpeed" class="muted"></span>
+                  <span id="progEta" class="muted"></span>
+                </div>
+              </div>
+
+              <button id="downloadBtn" class="btn btn-go">Télécharger</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ===================== Vue : Historique ===================== -->
+      <main class="view" id="view-history">
+        <div class="history-head">
+          <h2>Historique des téléchargements</h2>
+          <button id="clearHistory" class="btn btn-ghost">Tout effacer</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+        <div id="historyEmpty" class="history-empty">
+          <div class="placeholder-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="40" height="40">
+              <path fill="currentColor" d="M13 3a9 9 0 1 0 8.9 10.5 1 1 0 1 0-2-.3A7 7 0 1 1 13 5v2.6a.5.5 0 0 0 .8.4l4-2.6a.5.5 0 0 0 0-.8l-4-2.6A.5.5 0 0 0 13 2.4V3Zm-1 4a1 1 0 0 1 1 1v3.6l2.5 1.5a1 1 0 1 1-1 1.7l-3-1.8A1 1 0 0 1 11 12V8a1 1 0 0 1 1-1Z"/>
+            </svg>
+          </div>
+          <h2>Aucun téléchargement</h2>
+          <p class="muted">Tes téléchargements réussis apparaîtront ici.</p>
+        </div>
+      </main>
+
+      <!-- ===================== Journal (tiroir) ===================== -->
+      <aside id="logDrawer" class="log-drawer hidden">
+        <div class="log-head">
+          <span>Journal</span>
+          <div class="log-head-actions">
+            <button id="clearLog" class="btn btn-ghost">Vider</button>
+            <button id="closeLog" class="btn btn-ghost">Fermer ✕</button>
+          </div>
+        </div>
+        <pre id="log" class="log"></pre>
+      </aside>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

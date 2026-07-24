@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.DS_Store
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# Binaires téléchargés (récupérés via scripts/setup-binaries.ps1)
+src-tauri/binaries/
+src-tauri/app-icon.png
