@@ -32,6 +32,7 @@
 
         <nav class="tabs" id="tabs">
           <button class="tab active" data-view="download">Télécharger</button>
+          <button class="tab" data-view="convert">Convertir</button>
           <button class="tab" data-view="history">
             Historique <span class="tab-count" id="historyCount">0</span>
           </button>
@@ -217,6 +218,121 @@
           </div>
         </section>
       </main>
+
+      <!-- ===================== Vue : Convertir ===================== -->
+      <main class="view" id="view-convert">
+        <section class="workspace">
+          <div class="center">
+            <!-- Zone de dépôt -->
+            <div id="dropZone" class="card dropzone">
+              <div class="placeholder-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="40" height="40">
+                  <path
+                    fill="currentColor"
+                    d="M7 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.4a2 2 0 0 0-.6-1.4l-3.4-3.4A2 2 0 0 0 13.6 3H7Zm5 6a1 1 0 0 1 1 1v3.6l1.3-1.3a1 1 0 0 1 1.4 1.4l-3 3a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4l1.3 1.3V10a1 1 0 0 1 1-1Z"
+                  />
+                </svg>
+              </div>
+              <h2>Convertir un fichier local</h2>
+              <p class="muted">
+                Glisse une vidéo ou un fichier audio ici, ou choisis-le sur ton PC.
+                Tout se fait en local avec ffmpeg — rien n'est envoyé en ligne.
+              </p>
+              <button id="pickFile" class="btn btn-primary">Choisir un fichier</button>
+            </div>
+
+            <!-- Fichier source -->
+            <div id="cvSource" class="card cv-source hidden">
+              <div class="cv-source-icon" id="cvSourceIcon" aria-hidden="true"></div>
+              <div class="cv-source-info">
+                <h2 id="cvTitle"></h2>
+                <p id="cvMeta" class="muted"></p>
+              </div>
+              <button id="cvChange" class="btn btn-ghost">Changer</button>
+            </div>
+
+            <!-- Options de conversion -->
+            <div id="cvOptions" class="card options hidden">
+              <div class="opt-group">
+                <label class="opt-label">Convertir en</label>
+                <div class="segmented" id="cvModeSeg">
+                  <button class="seg active" data-mode="audio">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.6A4 4 0 1 1 11 10V4a1 1 0 0 1 1-1Z"/>
+                    </svg>
+                    Audio
+                  </button>
+                  <button class="seg" data-mode="video">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path fill="currentColor" d="M4 6a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v2l3-2v12l-3-2v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z"/>
+                    </svg>
+                    Vidéo
+                  </button>
+                </div>
+              </div>
+
+              <div class="opt-group">
+                <label class="opt-label">Nom du fichier</label>
+                <div class="filename-row">
+                  <input id="cvFileName" type="text" placeholder="Nom du fichier…" />
+                  <select id="cvExt" class="file-ext" title="Format de sortie"></select>
+                </div>
+              </div>
+
+              <div class="opt-grid">
+                <div class="opt-group" id="cvAudioGroup">
+                  <label class="opt-label">Qualité audio</label>
+                  <select id="cvAudioQuality">
+                    <option value="0">Meilleure (320k)</option>
+                    <option value="5">Moyenne (~128k)</option>
+                    <option value="9">Légère (~64k)</option>
+                  </select>
+                </div>
+
+                <div class="opt-group hidden" id="cvCodecGroup">
+                  <label class="opt-label">Encodage vidéo</label>
+                  <select id="cvCodec">
+                    <option value="auto">Standard (H.264, processeur)</option>
+                    <option value="copy">Sans ré-encodage (instantané, sans perte)</option>
+                    <option value="h264_nvenc">H.264 NVENC (GPU NVIDIA, rapide)</option>
+                    <option value="hevc_nvenc">HEVC/H.265 NVENC (GPU, plus léger)</option>
+                  </select>
+                </div>
+              </div>
+
+              <p id="cvHint" class="opt-hint hidden"></p>
+
+              <div class="opt-group folder">
+                <label class="opt-label">Dossier de sortie</label>
+                <div class="folder-row">
+                  <input id="cvOutDir" type="text" readonly placeholder="Même dossier que le fichier source" />
+                  <button id="cvPickDir" class="btn">Parcourir</button>
+                </div>
+              </div>
+
+              <!-- Progression -->
+              <div id="cvProgress" class="progress hidden">
+                <div class="progress-head">
+                  <span id="cvProgLabel">Préparation…</span>
+                  <span id="cvProgPct" class="muted">0 %</span>
+                </div>
+                <div class="bar"><div id="cvBarFill" class="bar-fill"></div></div>
+                <div class="progress-meta">
+                  <span id="cvProgSpeed" class="muted"></span>
+                  <span id="cvProgEta" class="muted"></span>
+                </div>
+              </div>
+
+              <button id="convertBtn" class="btn btn-go">Convertir</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Voile affiché pendant un glisser-déposer de fichier (toutes vues) -->
+      <div class="drop-overlay" id="dropOverlay">
+        <div class="drop-overlay-inner">Dépose ton fichier pour le convertir</div>
+      </div>
 
       <!-- ===================== Vue : Historique ===================== -->
       <main class="view" id="view-history">

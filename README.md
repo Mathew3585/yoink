@@ -5,6 +5,7 @@
 <br>
 
 **Colle un lien. Choisis le format. Récupère ta vidéo — MP4 ou MP3, en deux clics.**
+**Et convertis tes fichiers locaux (vidéo → MP3, MKV → MP4…) sans rien envoyer en ligne.**
 
 Yoink est un téléchargeur de vidéos pour Windows. Il analyse un lien, te laisse choisir le
 format, la qualité et le dossier, puis récupère le fichier avec `yt-dlp` et `ffmpeg` **embarqués
@@ -16,7 +17,7 @@ dans l'app**. Pas de pub, pas de compte, pas de site louche. Juste un outil prop
 [![Rust](https://img.shields.io/badge/Rust-000?style=flat-square&logo=rust)](https://www.rust-lang.org)
 [![Sans pub](https://img.shields.io/badge/Sans%20pub-%E2%9C%93-2ba640?style=flat-square)](#pourquoi)
 
-[Aperçu](#aperçu) · [Fonctionnalités](#fonctionnalités) · [Comment ça marche](#comment-ça-marche) · [Installation](#installation) · [Développement](#développement)
+[Télécharger](https://github.com/Mathew3585/yoink/releases/latest) · [Aperçu](#aperçu) · [Fonctionnalités](#fonctionnalités) · [Comment ça marche](#comment-ça-marche) · [Installation](#installation) · [Développement](#développement)
 
 </div>
 
@@ -79,8 +80,15 @@ C'est sous licence MIT et gratuit. Forke-le, démonte-le, réutilise ce qui te p
 - **Ré-encodage GPU NVENC** en option (`H.264` / `HEVC`) pour changer de codec — cartes NVIDIA
 - **Upscaling IA** optionnel via **Real-ESRGAN** (×2 / ×4) ou un mode rapide non-IA (×2, ffmpeg)
 
+**Conversion locale**
+- Onglet **Convertir** : glisse un fichier (ou choisis-le) et convertis-le avec `ffmpeg`, 100 % hors ligne
+- **Vidéo → audio** : `MP3`, `M4A`, `OPUS`, `FLAC`, `WAV` — idéal pour extraire la bande-son d'une vidéo
+- **Vidéo → vidéo** : `MP4`, `MKV`, `WEBM`, `MOV`, `AVI`, et même **GIF animé**
+- Encodage H.264 (processeur), **NVENC** H.264/HEVC (GPU NVIDIA), ou **remux sans ré-encodage** (instantané, sans perte)
+- Progression avec vitesse et ETA, annulation, jamais d'écrasement (`nom (1).mp3` si le fichier existe)
+
 **Interface**
-- Deux vues : **Télécharger** et **Historique**, dans une barre d'onglets
+- Trois vues : **Télécharger**, **Convertir** et **Historique**, dans une barre d'onglets
 - **Thèmes clair / sombre** (palette rouge YouTube), basculables et persistés
 - **Dropdowns custom** : les `<select>` natifs de Windows sont remplacés par des menus maison
 - **Historique** local : miniature, format, qualité, date, avec « ouvrir le fichier » et « retélécharger »
@@ -130,25 +138,29 @@ réassemble le tout avec l'audio d'origine et un ré-encodage GPU. Le mode `×2`
 > beaucoup d'espace disque. Il nécessite un nom de fichier explicite (pour retrouver la sortie) et
 > est ignoré pour le conteneur WEBM.
 
-Le tout communique par **cinq commandes Tauri** (`check_engines`, `fetch_info`, `start_download`,
-`cancel_download`, `reveal_path`) et **trois events** dans l'autre sens (`dl:progress`, `dl:log`,
-`dl:done`).
+**Conversion locale.** `probe_file` lit le fichier avec `ffprobe` (durée, pistes, résolution).
+`start_convert` lance `ffmpeg -progress pipe:1` avec les codecs adaptés au format visé (`libmp3lame`,
+`aac`, `libopus`, `flac`, `libx264`, NVENC, `libvpx-vp9`, palette GIF…) ; la progression est calculée
+à partir de `out_time` rapporté à la durée, et émise sur `cv:progress`.
+
+Le tout communique par **huit commandes Tauri** (`check_engines`, `fetch_info`, `start_download`,
+`cancel_download`, `probe_file`, `start_convert`, `cancel_convert`, `reveal_path`) et **cinq events**
+dans l'autre sens (`dl:progress`, `dl:log`, `dl:done`, `cv:progress`, `cv:done`).
 
 ---
 
 ## Installation
 
-> [!WARNING]
-> **Aucune release précompilée n'est publiée pour l'instant** (voir la [roadmap](#roadmap)). En
-> attendant, compile depuis les sources — voir [Développement](#-développement). Le binaire n'est
-> pas signé : Windows SmartScreen affichera un avertissement (« Informations complémentaires » →
-> « Exécuter quand même »).
-
-Une fois l'installateur `Yoink_x.y.z_x64-setup.exe` généré :
+Télécharge l'installateur **`Yoink_x.y.z_x64-setup.exe`** depuis la
+[dernière release](https://github.com/Mathew3585/yoink/releases/latest) :
 
 1. Lance-le — installation classique par utilisateur.
 2. Ouvre Yoink, colle un lien, choisis ton format et ton dossier.
 3. Clique sur **Télécharger**. C'est tout.
+
+> [!WARNING]
+> Le binaire n'est **pas signé** : Windows SmartScreen affichera un avertissement
+> (« Informations complémentaires » → « Exécuter quand même »).
 
 ### Prérequis
 
@@ -189,6 +201,18 @@ npm run tauri build
 ```
 
 L'installateur NSIS est produit dans `src-tauri/target/release/bundle/nsis/`.
+
+### Publier une release
+
+Le workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) construit
+l'installateur sur un runner Windows et le publie dans GitHub Releases dès qu'un tag `v*` est
+poussé. Pense à aligner la version dans `package.json`, `src-tauri/Cargo.toml` et
+`src-tauri/tauri.conf.json`, puis :
+
+```powershell
+git tag v0.2.0
+git push origin v0.2.0
+```
 
 ### Mettre à jour les moteurs
 
@@ -235,7 +259,8 @@ yoink/
 
 ## Confidentialité
 
-Yoink n'a **aucune télémétrie, aucun analytics, aucun compte**. Il ne parle qu'à deux choses : les
+Yoink n'a **aucune télémétrie, aucun analytics, aucun compte**. La conversion de fichiers se fait
+entièrement en local. Il ne parle qu'à deux choses : les
 serveurs de la vidéo que tu télécharges (via `yt-dlp`, forcément) et GitHub, quand *toi* tu lances
 `setup-binaries.ps1` pour récupérer les moteurs. L'historique est stocké **localement** dans le
 webview, sur ta machine. La Content-Security-Policy de l'app est restreinte à `self` (plus les
@@ -245,16 +270,16 @@ images en `https:` pour les miniatures).
 
 ## Statut
 
-Yoink est en **v0.1.0** — parfaitement utilisable au quotidien, mais pas encore 1.0.
+Yoink est en **v0.2.0** — parfaitement utilisable au quotidien, mais pas encore 1.0.
 
 ### Limites connues
 
 Autant être transparent sur les angles morts :
 
-- **Pas de release précompilée** pour l'instant, et le binaire est **non signé** (avertissement
-  SmartScreen attendu).
+- Le binaire est **non signé** (avertissement SmartScreen attendu).
 - **Windows uniquement.** macOS et Linux demanderaient de nouveaux back-ends pour l'ouverture de
   fichiers, l'annulation et le bundle.
+- **Un seul fichier converti à la fois**, pas de conversion par lot.
 - **Une seule vidéo à la fois** — pas de file d'attente ni de playlists (`--no-playlist` est forcé).
 - **L'upscaling IA** exige un nom de fichier explicite et ignore le conteneur WEBM.
 - Les options **NVENC** supposent un GPU **NVIDIA**.
@@ -262,7 +287,10 @@ Autant être transparent sur les angles morts :
 
 ### Roadmap
 
-- [ ] Releases signées sur GitHub Releases (avec l'installateur `.exe`)
+- [x] Releases sur GitHub Releases (avec l'installateur `.exe`)
+- [x] Conversion de fichiers locaux (vidéo → MP3, etc.)
+- [ ] Signature du binaire
+- [ ] Conversion par lot
 - [ ] Support des playlists et file d'attente de téléchargements
 - [ ] Captures d'écran réelles + GIF de démo dans ce README
 - [ ] Sélection de langue / interface anglaise

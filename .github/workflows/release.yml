@@ -1,0 +1,50 @@
+# Construit l'installateur Windows (.exe NSIS) et publie une release GitHub
+# à chaque tag « vX.Y.Z » poussé :  git tag v0.2.0 && git push origin v0.2.0
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Dépendances front
+        run: npm ci
+
+      # yt-dlp, ffmpeg/ffprobe et Real-ESRGAN, embarqués comme ressources Tauri.
+      - name: Moteurs (yt-dlp, ffmpeg, Real-ESRGAN)
+        shell: pwsh
+        run: ./scripts/setup-binaries.ps1
+
+      - name: Build + release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Yoink ${{ github.ref_name }}
+          releaseBody: |
+            Installateur Windows : télécharge **Yoink_*_x64-setup.exe** ci-dessous et lance-le.
+
+            Le binaire n'est pas signé : Windows SmartScreen affichera un avertissement
+            (« Informations complémentaires » → « Exécuter quand même »).
+          releaseDraft: false
+          prerelease: false

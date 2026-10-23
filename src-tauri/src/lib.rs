@@ -13,9 +13,10 @@ const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 const PROGRESS_TEMPLATE: &str =
     "PROG|%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s";
 
-// --- État partagé : PID du téléchargement en cours (pour l'annulation). ---
+// --- État partagé : PID du téléchargement / de la conversion en cours (pour l'annulation). ---
 struct AppState {
     current_pid: Mutex<Option<u32>>,
+    convert_pid: Mutex<Option<u32>>,
 }
 
 // --- Types échangés avec le frontend ---
@@ -46,6 +47,36 @@ struct DownloadOpts {
     audio_format: String, // format audio : "mp3" | "m4a" | "opus" | "flac" | "wav"
     nvenc: String,   // "none" | "h264_nvenc" | "hevc_nvenc"
     upscale: String, // "none" | "fast" | "ai2" | "ai4"
+}
+
+#[derive(serde::Serialize)]
+struct MediaInfo {
+    name: String, // nom du fichier sans extension
+    dir: String,
+    ext: String,
+    size: u64,
+    duration: Option<f64>,
+    has_video: bool,
+    has_audio: bool,
+    width: Option<i64>,
+    height: Option<i64>,
+}
+
+#[derive(serde::Deserialize)]
+struct ConvertOpts {
+    input: String,
+    out_dir: String,
+    file_name: String,     // sans extension
+    format: String,        // "mp3" | "m4a" | … | "mp4" | "mkv" | … | "gif"
+    audio_quality: String, // "0" | "5" | "9" (même échelle que yt-dlp)
+    video_codec: String,   // "auto" | "copy" | "h264_nvenc" | "hevc_nvenc"
+}
+
+#[derive(Clone, serde::Serialize)]
+struct ConvertDone {
+    success: bool,
+    message: String,
+    path: String,
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -365,17 +396,329 @@ fn start_download(
 fn cancel_download(state: State<AppState>) {
     let pid = state.current_pid.lock().unwrap().take();
     if let Some(pid) = pid {
-        #[cfg(windows)]
-        {
-            // Tue yt-dlp et toute son arborescence (ffmpeg inclus).
-            let _ = base_command("taskkill")
-                .args(["/PID", &pid.to_string(), "/T", "/F"])
-                .output();
+        kill_tree(pid);
+    }
+}
+
+// Tue un processus et toute son arborescence (yt-dlp -> ffmpeg inclus).
+fn kill_tree(pid: u32) {
+    #[cfg(windows)]
+    {
+        let _ = base_command("taskkill")
+            .args(["/PID", &pid.to_string(), "/T", "/F"])
+            .output();
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = base_command("kill").arg(pid.to_string()).output();
+    }
+}
+
+// --- Conversion de fichiers locaux (ffmpeg) ---
+
+// Lit les infos d'un fichier média local via ffprobe.
+#[tauri::command]
+fn probe_file(app: AppHandle, path: String) -> Result<MediaInfo, String> {
+    let p = Path::new(&path);
+    if !p.is_file() {
+        return Err("Fichier introuvable.".into());
+    }
+    let ffprobe = binaries_dir(&app).join("ffprobe.exe");
+    let out = base_command(&ffprobe)
+        .args(["-v", "error", "-print_format", "json", "-show_format", "-show_streams"])
+        .arg(p)
+        .output()
+        .map_err(|e| format!("ffprobe introuvable : {e}"))?;
+    if !out.status.success() {
+        return Err("Fichier illisible : ce n'est pas un média reconnu par ffmpeg.".into());
+    }
+    let v: serde_json::Value =
+        serde_json::from_slice(&out.stdout).map_err(|e| format!("JSON illisible : {e}"))?;
+
+    let streams = v["streams"].as_array().cloned().unwrap_or_default();
+    // Une pochette d'album (attached_pic) n'est pas une « vraie » vidéo.
+    let video = streams.iter().find(|s| {
+        s["codec_type"] == "video" && s["disposition"]["attached_pic"].as_i64() != Some(1)
+    });
+    let has_audio = streams.iter().any(|s| s["codec_type"] == "audio");
+    if video.is_none() && !has_audio {
+        return Err("Aucune piste audio ou vidéo dans ce fichier.".into());
+    }
+
+    Ok(MediaInfo {
+        name: p.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default(),
+        dir: p.parent().map(|d| d.to_string_lossy().to_string()).unwrap_or_default(),
+        ext: p.extension().map(|s| s.to_string_lossy().to_lowercase()).unwrap_or_default(),
+        size: std::fs::metadata(p).map(|m| m.len()).unwrap_or(0),
+        duration: media_duration(&v),
+        has_video: video.is_some(),
+        has_audio,
+        width: video.and_then(|s| s["width"].as_i64()),
+        height: video.and_then(|s| s["height"].as_i64()),
+    })
+}
+
+#[tauri::command]
+fn start_convert(app: AppHandle, state: State<AppState>, opts: ConvertOpts) -> Result<(), String> {
+    let input = PathBuf::from(&opts.input);
+    if !input.is_file() {
+        return Err("Fichier source introuvable.".into());
+    }
+    let dir = binaries_dir(&app);
+    let ffmpeg = dir.join("ffmpeg.exe");
+    let ffprobe = dir.join("ffprobe.exe");
+
+    let format = valid_convert_format(&opts.format);
+    let name = {
+        let n = sanitize_filename(&opts.file_name);
+        if n.is_empty() {
+            input.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or("converti".into())
+        } else {
+            n
         }
-        #[cfg(not(windows))]
-        {
-            let _ = base_command("kill").arg(pid.to_string()).output();
+    };
+    let out_dir = if opts.out_dir.trim().is_empty() {
+        input.parent().map(Path::to_path_buf).unwrap_or_default()
+    } else {
+        PathBuf::from(&opts.out_dir)
+    };
+    // Jamais d'écrasement (ni de la source, ni d'un fichier existant).
+    let output = unique_path(&out_dir, &name, format);
+
+    let duration = base_command(&ffprobe)
+        .args(["-v", "error", "-print_format", "json", "-show_format"])
+        .arg(&input)
+        .output()
+        .ok()
+        .and_then(|o| serde_json::from_slice::<serde_json::Value>(&o.stdout).ok())
+        .and_then(|v| media_duration(&v));
+
+    let mut args: Vec<String> = vec![
+        "-hide_banner".into(),
+        "-nostdin".into(),
+        "-loglevel".into(), "error".into(),
+        "-progress".into(), "pipe:1".into(),
+        "-nostats".into(),
+        "-i".into(), input.to_string_lossy().to_string(),
+    ];
+    args.extend(convert_codec_args(format, &opts.audio_quality, &opts.video_codec));
+    args.push(output.to_string_lossy().to_string());
+
+    let _ = app.emit(
+        "dl:log",
+        format!("▶ Conversion : {} → {}", input.display(), output.display()),
+    );
+
+    let mut child = base_command(&ffmpeg)
+        .args(&args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("Lancement de ffmpeg impossible : {e}"))?;
+
+    *state.convert_pid.lock().unwrap() = Some(child.id());
+
+    let stdout = child.stdout.take().unwrap();
+    let stderr = child.stderr.take().unwrap();
+
+    // Thread stderr -> journal (ffmpeg n'y écrit que les erreurs avec -loglevel error).
+    let app_err = app.clone();
+    let err_thread = std::thread::spawn(move || {
+        let mut last = String::new();
+        for line in BufReader::new(stderr).lines().map_while(Result::ok) {
+            if !line.trim().is_empty() {
+                let _ = app_err.emit("dl:log", line.clone());
+                last = line;
+            }
         }
+        last
+    });
+
+    // Thread stdout -> progression (-progress pipe:1 : lignes clé=valeur), puis attente.
+    let app_out = app.clone();
+    std::thread::spawn(move || {
+        let mut speed: Option<String> = None;
+        for line in BufReader::new(stdout).lines().map_while(Result::ok) {
+            let Some((key, val)) = line.split_once('=') else { continue };
+            match key {
+                "speed" => speed = clean(Some(&val)).filter(|s| s != "N/A"),
+                // Malgré son nom, out_time_ms est en microsecondes.
+                "out_time_ms" | "out_time_us" => {
+                    let (Some(total), Ok(us)) = (duration, val.trim().parse::<f64>()) else {
+                        continue;
+                    };
+                    let done = us / 1_000_000.0;
+                    let percent = (done / total * 100.0).clamp(0.0, 100.0);
+                    let eta = speed
+                        .as_deref()
+                        .and_then(|s| s.trim_end_matches('x').parse::<f64>().ok())
+                        .filter(|x| *x > 0.0)
+                        .map(|x| fmt_hms((total - done).max(0.0) / x));
+                    let _ = app_out.emit(
+                        "cv:progress",
+                        Progress {
+                            percent: Some(percent),
+                            speed: speed.clone(),
+                            eta,
+                            phase: Some("Conversion".into()),
+                        },
+                    );
+                }
+                _ => {}
+            }
+        }
+
+        let ok = child.wait().map(|s| s.success()).unwrap_or(false);
+        let last_err = err_thread.join().unwrap_or_default();
+        let cancelled = match app_out.try_state::<AppState>() {
+            Some(st) => st.convert_pid.lock().unwrap().take().is_none(),
+            None => false,
+        };
+        if !ok {
+            // Fichier partiel inutilisable : on le supprime.
+            let _ = std::fs::remove_file(&output);
+        }
+        let message = if ok {
+            String::new()
+        } else if cancelled {
+            "Conversion annulée.".into()
+        } else if last_err.is_empty() {
+            "Conversion en échec.".into()
+        } else {
+            format!("Conversion en échec : {last_err}")
+        };
+        let _ = app_out.emit(
+            "cv:done",
+            ConvertDone {
+                success: ok,
+                message,
+                path: output.to_string_lossy().to_string(),
+            },
+        );
+    });
+
+    Ok(())
+}
+
+#[tauri::command]
+fn cancel_convert(state: State<AppState>) {
+    if let Some(pid) = state.convert_pid.lock().unwrap().take() {
+        kill_tree(pid);
+    }
+}
+
+// Durée (secondes) lue dans la sortie JSON de ffprobe.
+fn media_duration(v: &serde_json::Value) -> Option<f64> {
+    v["format"]["duration"]
+        .as_str()
+        .and_then(|s| s.parse::<f64>().ok())
+        .filter(|d| *d > 0.0)
+}
+
+// Valide le format de sortie d'une conversion ; défaut « mp3 » si inconnu.
+fn valid_convert_format(fmt: &str) -> &'static str {
+    match fmt {
+        "mp4" => "mp4",
+        "mkv" => "mkv",
+        "webm" => "webm",
+        "mov" => "mov",
+        "avi" => "avi",
+        "gif" => "gif",
+        other => valid_audio_format(other),
+    }
+}
+
+// Arguments ffmpeg (sélection des pistes + codecs) selon le format visé.
+fn convert_codec_args(format: &str, audio_quality: &str, video_codec: &str) -> Vec<String> {
+    let s = |v: &[&str]| v.iter().map(|x| x.to_string()).collect::<Vec<String>>();
+    // Même échelle que yt-dlp : 0 = meilleure, 5 = moyenne, 9 = légère.
+    let (br, br_opus) = match audio_quality {
+        "9" => ("64k", "48k"),
+        "5" => ("128k", "96k"),
+        _ => ("320k", "192k"),
+    };
+
+    // --- Sorties audio : on ignore toute piste vidéo (et les pochettes). ---
+    let audio = match format {
+        "mp3" => Some(s(&["-c:a", "libmp3lame", "-b:a", br])),
+        "m4a" => Some(s(&["-c:a", "aac", "-b:a", br])),
+        "opus" => Some(s(&["-c:a", "libopus", "-b:a", br_opus])),
+        "flac" => Some(s(&["-c:a", "flac"])),
+        "wav" => Some(s(&["-c:a", "pcm_s16le"])),
+        _ => None,
+    };
+    if let Some(codec) = audio {
+        let mut a = s(&["-map", "0:a:0", "-vn"]);
+        a.extend(codec);
+        return a;
+    }
+
+    if format == "gif" {
+        return s(&[
+            "-map", "0:v:0",
+            "-an",
+            "-vf", "fps=12,scale='min(480,iw)':-2:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse",
+            "-loop", "0",
+        ]);
+    }
+
+    // --- Sorties vidéo : première piste vidéo + première piste audio (si présentes). ---
+    let mut a = s(&["-map", "0:v:0?", "-map", "0:a:0?"]);
+    if video_codec == "copy" {
+        // Remux sans perte : instantané, mais le conteneur doit accepter les codecs source.
+        a.extend(s(&["-c", "copy"]));
+    } else {
+        match format {
+            "webm" => a.extend(s(&[
+                "-c:v", "libvpx-vp9", "-crf", "32", "-b:v", "0",
+                "-row-mt", "1", "-deadline", "good", "-cpu-used", "4",
+                "-c:a", "libopus", "-b:a", "128k",
+            ])),
+            "avi" => a.extend(s(&[
+                "-c:v", "mpeg4", "-q:v", "3",
+                "-c:a", "libmp3lame", "-b:a", "192k",
+            ])),
+            _ => {
+                match video_codec {
+                    "h264_nvenc" | "hevc_nvenc" => {
+                        a.extend(s(&["-c:v", video_codec, "-preset", "p5", "-cq", "23"]));
+                        if video_codec == "hevc_nvenc" && format != "mkv" {
+                            // Balise attendue par les lecteurs Apple / Windows.
+                            a.extend(s(&["-tag:v", "hvc1"]));
+                        }
+                    }
+                    _ => a.extend(s(&["-c:v", "libx264", "-crf", "20", "-preset", "medium"])),
+                }
+                a.extend(s(&["-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k"]));
+            }
+        }
+    }
+    if matches!(format, "mp4" | "mov") {
+        a.extend(s(&["-movflags", "+faststart"]));
+    }
+    a
+}
+
+// Chemin de sortie libre : « nom.ext », sinon « nom (1).ext », « nom (2).ext »…
+fn unique_path(dir: &Path, name: &str, ext: &str) -> PathBuf {
+    let first = dir.join(format!("{name}.{ext}"));
+    if !first.exists() {
+        return first;
+    }
+    (1..)
+        .map(|i| dir.join(format!("{name} ({i}).{ext}")))
+        .find(|p| !p.exists())
+        .unwrap()
+}
+
+// 75.4 -> "01:15" ; 3725 -> "1:02:05"
+fn fmt_hms(sec: f64) -> String {
+    let t = sec.round() as u64;
+    let (h, m, s) = (t / 3600, (t % 3600) / 60, t % 60);
+    if h > 0 {
+        format!("{h}:{m:02}:{s:02}")
+    } else {
+        format!("{m:02}:{s:02}")
     }
 }
 
@@ -691,12 +1034,16 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(AppState {
             current_pid: Mutex::new(None),
+            convert_pid: Mutex::new(None),
         })
         .invoke_handler(tauri::generate_handler![
             check_engines,
             fetch_info,
             start_download,
             cancel_download,
+            probe_file,
+            start_convert,
+            cancel_convert,
             reveal_path
         ])
         .run(tauri::generate_context!())

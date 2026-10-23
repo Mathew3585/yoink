@@ -747,6 +747,87 @@ select {
   background: var(--go);
 }
 
+/* ===================== Convertir ===================== */
+#view-convert .workspace {
+  padding-top: 24px;
+}
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 48px 28px;
+  border: 2px dashed var(--border-strong);
+  box-shadow: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.dropzone h2 {
+  font-size: 18px;
+}
+.dropzone p {
+  max-width: 420px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.cv-source {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.cv-source-icon {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.cv-source-info {
+  flex: 1;
+  min-width: 0;
+}
+.cv-source-info h2 {
+  font-size: 16px;
+  line-height: 1.35;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seg:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Voile de glisser-déposer */
+.drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  padding: 18px;
+  background: var(--accent-soft);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+.drop-overlay.show {
+  display: block;
+}
+.drop-overlay-inner {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border: 3px dashed var(--accent);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 700;
+}
+
 /* ===================== Historique ===================== */
 .history-head {
   flex-shrink: 0;

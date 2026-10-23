@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open } from "@tauri-apps/plugin-dialog";
 
 // --- Références DOM ---
@@ -15,6 +16,34 @@ const els = {
   // vues
   viewDownload: $("view-download"),
   viewHistory: $("view-history"),
+  viewConvert: $("view-convert"),
+  // conversion
+  dropZone: $("dropZone"),
+  dropOverlay: $("dropOverlay"),
+  pickFile: $("pickFile"),
+  cvSource: $("cvSource"),
+  cvSourceIcon: $("cvSourceIcon"),
+  cvTitle: $("cvTitle"),
+  cvMeta: $("cvMeta"),
+  cvChange: $("cvChange"),
+  cvOptions: $("cvOptions"),
+  cvModeSeg: $("cvModeSeg"),
+  cvFileName: $("cvFileName"),
+  cvExt: $("cvExt"),
+  cvAudioGroup: $("cvAudioGroup"),
+  cvAudioQuality: $("cvAudioQuality"),
+  cvCodecGroup: $("cvCodecGroup"),
+  cvCodec: $("cvCodec"),
+  cvHint: $("cvHint"),
+  cvOutDir: $("cvOutDir"),
+  cvPickDir: $("cvPickDir"),
+  cvProgress: $("cvProgress"),
+  cvProgLabel: $("cvProgLabel"),
+  cvProgPct: $("cvProgPct"),
+  cvBarFill: $("cvBarFill"),
+  cvProgSpeed: $("cvProgSpeed"),
+  cvProgEta: $("cvProgEta"),
+  convertBtn: $("convertBtn"),
   // téléchargement
   placeholder: $("placeholder"),
   url: $("url"),
@@ -97,6 +126,7 @@ function toggleTheme() {
 function setView(view) {
   els.viewDownload.classList.toggle("active", view === "download");
   els.viewHistory.classList.toggle("active", view === "history");
+  els.viewConvert.classList.toggle("active", view === "convert");
   for (const tab of els.tabs.querySelectorAll(".tab")) {
     tab.classList.toggle("active", tab.dataset.view === view);
   }
@@ -165,6 +195,7 @@ function renderHistory() {
     row.className = "history-item";
     const badge = item.format || (item.mode === "audio" ? "MP3" : "MP4");
     const quality = item.quality ? `<span class="chip">${esc(item.quality)}</span>` : "";
+    const converted = item.mode === "convert" ? `<span class="chip">Converti</span>` : "";
     const upscale = item.upscale ? `<span class="chip chip-up">↑ ${esc(item.upscale)}</span>` : "";
     row.innerHTML = `
       <div class="hist-thumb">
@@ -174,6 +205,7 @@ function renderHistory() {
       <div class="hist-info">
         <div class="hist-title">${esc(item.title || "(sans titre)")}</div>
         <div class="hist-meta">
+          ${converted}
           ${quality}
           ${upscale}
           <span>${esc(fmtDate(item.date))}</span>
@@ -181,7 +213,7 @@ function renderHistory() {
       </div>
       <div class="hist-actions">
         <button class="icon-btn" data-act="open" title="Ouvrir le fichier">${ICON_FOLDER}</button>
-        <button class="icon-btn" data-act="redl" title="Retélécharger">${ICON_REDL}</button>
+        ${item.url ? `<button class="icon-btn" data-act="redl" title="Retélécharger">${ICON_REDL}</button>` : ""}
         <button class="icon-btn" data-act="del" title="Retirer de l'historique">${ICON_TRASH}</button>
       </div>`;
 
@@ -190,7 +222,7 @@ function renderHistory() {
         logLine(`Impossible d'ouvrir : ${e}`, "err")
       );
     });
-    row.querySelector('[data-act="redl"]').addEventListener("click", () => {
+    row.querySelector('[data-act="redl"]')?.addEventListener("click", () => {
       els.url.value = item.url || "";
       setView("download");
       if (item.url) fetchInfo();
@@ -693,6 +725,271 @@ listen("dl:done", (e) => {
 });
 
 // ============================================================
+//  Conversion de fichiers locaux
+// ============================================================
+const CV_VIDEO_FORMATS = ["mp4", "mkv", "webm", "mov", "avi", "gif"];
+// Extensions proposées dans le sélecteur de fichier source.
+const MEDIA_EXTS = [
+  "mp4", "mkv", "webm", "mov", "avi", "wmv", "flv", "m4v", "mpg", "mpeg", "ts", "3gp",
+  "mp3", "m4a", "aac", "opus", "ogg", "flac", "wav", "wma", "aiff",
+];
+const ICON_FILE_VIDEO =
+  '<svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M4 6a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v2l3-2v12l-3-2v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z"/></svg>';
+const ICON_FILE_AUDIO =
+  '<svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.6A4 4 0 1 1 11 10V4a1 1 0 0 1 1-1Z"/></svg>';
+
+const cv = {
+  file: null, // infos du fichier source (probe_file) + chemin
+  mode: "audio", // type de sortie : "audio" | "video"
+  audioFormat: "mp3",
+  videoFormat: "mp4",
+  btnMode: "convert", // "convert" | "cancel" | "open"
+  lastFile: "",
+};
+
+function fmtSize(bytes) {
+  if (!bytes) return "";
+  const units = ["o", "Ko", "Mo", "Go"];
+  let i = 0;
+  while (bytes >= 1024 && i < units.length - 1) {
+    bytes /= 1024;
+    i++;
+  }
+  return `${bytes.toFixed(i === 0 ? 0 : 1).replace(".", ",")} ${units[i]}`;
+}
+
+async function pickSourceFile() {
+  const path = await open({
+    multiple: false,
+    directory: false,
+    title: "Choisir un fichier à convertir",
+    filters: [
+      { name: "Fichiers audio / vidéo", extensions: MEDIA_EXTS },
+      { name: "Tous les fichiers", extensions: ["*"] },
+    ],
+  });
+  if (path) loadSourceFile(path);
+}
+
+async function loadSourceFile(path) {
+  if (cv.btnMode === "cancel") {
+    logLine("Une conversion est déjà en cours.", "err");
+    return;
+  }
+  setView("convert");
+  try {
+    const info = await invoke("probe_file", { path });
+    cv.file = { ...info, path };
+  } catch (e) {
+    logLine(`✗ Fichier refusé : ${e}`, "err");
+    showLog(true);
+    return;
+  }
+  const f = cv.file;
+  els.dropZone.classList.add("hidden");
+  els.cvSource.classList.remove("hidden");
+  els.cvOptions.classList.remove("hidden");
+  els.cvSourceIcon.innerHTML = f.has_video ? ICON_FILE_VIDEO : ICON_FILE_AUDIO;
+  els.cvTitle.textContent = `${f.name}${f.ext ? "." + f.ext : ""}`;
+  els.cvTitle.title = path;
+  const meta = [];
+  if (f.ext) meta.push(f.ext.toUpperCase());
+  if (f.height) meta.push(`${f.width}×${f.height}`);
+  else if (!f.has_video) meta.push("Audio seul");
+  if (f.duration) meta.push(fmtDuration(f.duration));
+  if (f.size) meta.push(fmtSize(f.size));
+  els.cvMeta.textContent = meta.join("  ·  ");
+  els.cvFileName.value = sanitizeFilename(f.name);
+
+  // Pas de piste vidéo : la sortie vidéo n'a pas de sens.
+  const videoBtn = els.cvModeSeg.querySelector('[data-mode="video"]');
+  videoBtn.disabled = !f.has_video;
+  // Un fichier vidéo se convertit le plus souvent en audio (MP3) — on garde ce défaut.
+  setCvMode(f.has_video ? cv.mode : "audio");
+  els.cvProgress.classList.add("hidden");
+  setCvBtnMode("convert");
+  logLine(`✓ Fichier chargé : ${path}`, "ok");
+}
+
+function resetSourceFile() {
+  if (cv.btnMode === "cancel") return;
+  cv.file = null;
+  els.dropZone.classList.remove("hidden");
+  els.cvSource.classList.add("hidden");
+  els.cvOptions.classList.add("hidden");
+}
+
+function setCvMode(mode) {
+  cv.mode = mode;
+  for (const btn of els.cvModeSeg.querySelectorAll(".seg")) {
+    btn.classList.toggle("active", btn.dataset.mode === mode);
+  }
+  const isVideo = mode === "video";
+  const list = isVideo ? CV_VIDEO_FORMATS : AUDIO_FORMATS;
+  const current = isVideo ? cv.videoFormat : cv.audioFormat;
+  els.cvExt.innerHTML = "";
+  for (const f of list) {
+    const opt = document.createElement("option");
+    opt.value = f;
+    opt.textContent = `.${f}`;
+    els.cvExt.appendChild(opt);
+  }
+  els.cvExt.value = list.includes(current) ? current : list[0];
+  els.cvExt._dd?.refresh();
+  updateCvOptions();
+  if (cv.btnMode === "open") setCvBtnMode("convert");
+}
+
+// Affiche les réglages pertinents pour le format choisi.
+function updateCvOptions() {
+  const fmt = els.cvExt.value;
+  const isVideo = cv.mode === "video";
+  if (isVideo) cv.videoFormat = fmt;
+  else cv.audioFormat = fmt;
+
+  const lossless = fmt === "flac" || fmt === "wav";
+  els.cvAudioGroup.classList.toggle("hidden", isVideo || lossless);
+  // Le codec n'est réglable que pour les conteneurs H.264/HEVC.
+  els.cvCodecGroup.classList.toggle("hidden", !isVideo || fmt === "gif");
+
+  let hint = "";
+  if (lossless) hint = "Format sans perte : fichier plus lourd, qualité identique à la source.";
+  else if (fmt === "gif") hint = "GIF animé sans son, 12 images/s, 480 px de large max. Évite les vidéos longues.";
+  else if (isVideo && els.cvCodec.value === "copy")
+    hint = "Remux sans ré-encodage : instantané et sans perte, mais échoue si le conteneur n'accepte pas les codecs d'origine.";
+  else if (isVideo && (fmt === "webm" || fmt === "avi"))
+    hint = `Le ${fmt.toUpperCase()} utilise son propre codec (${fmt === "webm" ? "VP9" : "MPEG-4"}) ; l'encodage GPU ne s'applique pas.`;
+  els.cvHint.textContent = hint;
+  els.cvHint.classList.toggle("hidden", !hint);
+}
+
+async function pickCvDir() {
+  const dir = await open({ directory: true, multiple: false, title: "Choisir le dossier de sortie" });
+  if (dir) els.cvOutDir.value = dir;
+}
+
+function setCvBtnMode(mode) {
+  cv.btnMode = mode;
+  const b = els.convertBtn;
+  b.classList.remove("btn-go", "btn-cancel", "btn-open");
+  if (mode === "cancel") {
+    b.textContent = "Annuler";
+    b.classList.add("btn-cancel");
+  } else if (mode === "open") {
+    b.innerHTML = `${ICON_FOLDER} Ouvrir le fichier`;
+    b.classList.add("btn-open");
+  } else {
+    b.textContent = "Convertir";
+    b.classList.add("btn-go");
+  }
+  els.cvChange.disabled = mode === "cancel";
+}
+
+async function onConvertButton() {
+  if (cv.btnMode === "cancel") {
+    await invoke("cancel_convert").catch(() => {});
+    logLine("Annulation demandée…");
+    return;
+  }
+  if (cv.btnMode === "open") {
+    await invoke("reveal_path", { path: cv.lastFile }).catch((e) =>
+      logLine(`Impossible d'ouvrir : ${e}`, "err")
+    );
+    return;
+  }
+  if (!cv.file) return;
+
+  const format = els.cvExt.value;
+  const opts = {
+    input: cv.file.path,
+    out_dir: els.cvOutDir.value,
+    file_name: sanitizeFilename(els.cvFileName.value) || cv.file.name,
+    format,
+    audio_quality: els.cvAudioQuality.value,
+    video_codec: cv.mode === "video" ? els.cvCodec.value : "auto",
+  };
+  cv.pending = {
+    id: `${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+    url: "",
+    title: `${opts.file_name}.${format}`,
+    thumbnail: "",
+    mode: "convert",
+    format: format.toUpperCase(),
+    quality:
+      cv.mode === "audio" && format !== "flac" && format !== "wav"
+        ? els.cvAudioQuality.options[els.cvAudioQuality.selectedIndex]?.textContent || ""
+        : "",
+    dir: els.cvOutDir.value || cv.file.dir,
+  };
+
+  setCvBtnMode("cancel");
+  els.cvProgress.classList.remove("hidden");
+  els.cvBarFill.style.width = "0%";
+  els.cvBarFill.classList.remove("done");
+  els.cvProgPct.textContent = "0 %";
+  els.cvProgLabel.textContent = "Conversion…";
+  els.cvProgSpeed.textContent = "";
+  els.cvProgEta.textContent = "";
+
+  try {
+    await invoke("start_convert", { opts });
+  } catch (e) {
+    logLine(`✗ Échec : ${e}`, "err");
+    showLog(true);
+    setCvBtnMode("convert");
+    cv.pending = null;
+  }
+}
+
+listen("cv:progress", (e) => {
+  const { percent, speed, eta } = e.payload;
+  if (percent != null) {
+    els.cvBarFill.style.width = `${percent}%`;
+    els.cvProgPct.textContent = `${percent.toFixed(1)} %`;
+  }
+  if (speed != null) els.cvProgSpeed.textContent = `Vitesse ${speed}`;
+  if (eta != null) els.cvProgEta.textContent = `ETA ${eta}`;
+});
+
+listen("cv:done", (e) => {
+  const { success, message, path } = e.payload;
+  if (success) {
+    els.cvBarFill.style.width = "100%";
+    els.cvBarFill.classList.add("done");
+    els.cvProgPct.textContent = "100 %";
+    els.cvProgLabel.textContent = "Terminé ✓";
+    els.cvProgSpeed.textContent = "";
+    els.cvProgEta.textContent = "";
+    cv.lastFile = path;
+    logLine(`✓ Conversion terminée → ${path}`, "ok");
+    setCvBtnMode("open");
+    if (cv.pending) {
+      const name = path.split(/[\\/]/).pop();
+      addToHistory({ ...cv.pending, title: name, filePath: path, date: Date.now() });
+    }
+  } else {
+    els.cvProgLabel.textContent = "Arrêté";
+    logLine(`✗ ${message || "Conversion interrompue."}`, "err");
+    showLog(true);
+    setCvBtnMode("convert");
+  }
+  cv.pending = null;
+});
+
+// Glisser-déposer d'un fichier n'importe où dans la fenêtre.
+getCurrentWebview().onDragDropEvent((e) => {
+  const { type, paths } = e.payload;
+  if (type === "enter" || type === "over") {
+    els.dropOverlay.classList.toggle("show", cv.btnMode !== "cancel");
+  } else if (type === "drop") {
+    els.dropOverlay.classList.remove("show");
+    if (paths?.length) loadSourceFile(paths[0]);
+  } else {
+    els.dropOverlay.classList.remove("show");
+  }
+});
+
+// ============================================================
 //  Journal (tiroir basculable)
 // ============================================================
 function showLog(show) {
@@ -731,6 +1028,19 @@ els.modeSeg.addEventListener("click", (e) => {
 });
 els.fileExt.addEventListener("change", rememberFormat);
 els.upscale.addEventListener("change", updateUpscaleHint);
+els.pickFile.addEventListener("click", pickSourceFile);
+els.cvChange.addEventListener("click", resetSourceFile);
+els.cvPickDir.addEventListener("click", pickCvDir);
+els.convertBtn.addEventListener("click", onConvertButton);
+els.cvExt.addEventListener("change", () => {
+  updateCvOptions();
+  if (cv.btnMode === "open") setCvBtnMode("convert");
+});
+els.cvCodec.addEventListener("change", updateCvOptions);
+els.cvModeSeg.addEventListener("click", (e) => {
+  const btn = e.target.closest(".seg");
+  if (btn && !btn.disabled) setCvMode(btn.dataset.mode);
+});
 
 // ============================================================
 //  Démarrage
@@ -742,7 +1052,11 @@ enhanceSelect(els.quality);
 enhanceSelect(els.audioQuality);
 enhanceSelect(els.nvenc);
 enhanceSelect(els.upscale);
+enhanceSelect(els.cvExt, { variant: "badge" });
+enhanceSelect(els.cvAudioQuality);
+enhanceSelect(els.cvCodec);
 setMode("video");
+setCvMode("audio");
 checkEngines();
 updateHistoryCount(loadHistory().length);
 const savedDir = localStorage.getItem("ytdl.outDir");
